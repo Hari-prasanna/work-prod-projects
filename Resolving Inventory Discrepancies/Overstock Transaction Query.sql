@@ -89,8 +89,7 @@ WITH
             AND hv.ZIEL LIKE 'OV%'
     ),
 
-    -- CTE 5: Combined Data (Replaces the nested subquery)
-    -- Joins T1 and T2 for both Normal and Dummy goods and applies filters.
+    -- CTE 5: Combined Data
     combined_transactions AS (
         -- Part 1: Normal Goods
         SELECT
@@ -98,7 +97,16 @@ WITH
             t1.CUST_DATA AS t1_cust_data, 
             t2.LHMNR AS ZIEL_LHM, t1.MENGE, t1.Reference_LHM,
             'NORMAL' AS good_type, 
-            t2.CUST_DATA AS t2_cust_data
+            t2.CUST_DATA AS t2_cust_data,
+            -- Updated Quality Logic for Normal Goods with SORTABLE_ART check
+            CASE
+                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '1' AND LOWER(JSON_VALUE(t1.CUST_DATA, '$.SORTABLE_ART')) = 'false' THEN 'A -> B'
+                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '1' THEN 'A'
+                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '2' THEN 'B'
+                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '3' THEN 'C'
+                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '4' THEN 'D'
+                ELSE 'Unknown'
+            END AS Quality
         FROM normal_goods_t1 t1
         LEFT JOIN normal_goods_t2 t2 ON t1.LOCAL_TRANSACTION_ID = t2.LOCAL_TRANSACTION_ID
         WHERE 
@@ -118,7 +126,17 @@ WITH
             t1.CUST_DATA AS t1_cust_data, 
             t2.LHMNR AS ZIEL_LHM, t1.MENGE, t1.Reference_LHM,
             'DUMMY' AS good_type, 
-            t2.CUST_DATA AS t2_cust_data
+            t2.CUST_DATA AS t2_cust_data,
+            -- Updated Quality Logic for Dummy Goods with SORTABLE_ART check
+            CASE
+                WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '1' 
+                 AND COALESCE(JSON_VALUE(t2.CUST_DATA, '$.SORTABLE_ART'), JSON_VALUE(t1.CUST_DATA, '$.SORTABLE_ART')) = 'false' THEN 'B'
+                WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '1' THEN 'A'
+                WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '2' THEN 'B'
+                WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '3' THEN 'C'
+                WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '4' THEN 'D'
+                ELSE 'Unknown'
+            END AS Quality
         FROM dummy_goods_t1 t1
         LEFT JOIN dummy_goods_t2 t2 ON t1.LOCAL_TRANSACTION_ID = t2.LOCAL_TRANSACTION_ID
         WHERE 
@@ -132,10 +150,14 @@ WITH
             )
     )
 
--- FINAL SELECT: Applies business logic to the combined dataset
+-- FINAL SELECT
 SELECT
     TO_CHAR(ag.CREATED, 'DD.MM.YYYY HH24:MI:SS')       AS Timestamp,
-    ag.ARTNR                                            AS EAN,
+    COALESCE(
+        JSON_VALUE(ag.t1_cust_data, '$.LASTEANGOTFROMMAUS_ZIEL'), 
+        ag.ARTNR
+    )                                                   AS EAN,
+
     ag.ZIEL                                             AS AP,
     ag.CREATEDBY                                        AS BENUTZER,
     ag.Source_LHM,
@@ -143,7 +165,6 @@ SELECT
     ABS(ag.MENGE)                                       AS Quantity,
     ag.Reference_LHM,
     
-    -- Logic Update: Checks T2 data first, falls back to T1
     DECODE(
         COALESCE(
             JSON_VALUE(ag.t2_cust_data, '$.SOURCEID_SEKTOR'), 
@@ -155,14 +176,7 @@ SELECT
         'Unknown'
     ) AS Source_Channel,
 
-    DECODE(
-        JSON_VALUE(ag.t1_cust_data, '$.QUALITYID_SEKTOR'),
-        '1', 'A',
-        '2', 'B',
-        '3', 'C',
-        '4', 'D',
-        'Unknown'
-    ) AS Quality,
+    ag.Quality, 
 
     DECODE(
         JSON_VALUE(ag.t1_cust_data, '$.CATEGORYID_ART'),
@@ -174,10 +188,8 @@ SELECT
         'Unknown'
     ) AS Category,
 
-    -- Logic Update: Distribution Channel checks T2 first, then T1
     CASE
         WHEN ag.ZIEL_LHM LIKE '50%' THEN 'Overstock'
-        WHEN JSON_VALUE(ag.t1_cust_data, '$.QUALITYID_SEKTOR') IN ('3', '4') THEN 'Overstock'
         WHEN COALESCE(JSON_VALUE(ag.t2_cust_data, '$.DISTRIBUTIONCHANNELID_ART'), JSON_VALUE(ag.t1_cust_data, '$.DISTRIBUTIONCHANNELID_ART')) = '4'  THEN 'Outlet'
         WHEN COALESCE(JSON_VALUE(ag.t2_cust_data, '$.DISTRIBUTIONCHANNELID_ART'), JSON_VALUE(ag.t1_cust_data, '$.DISTRIBUTIONCHANNELID_ART')) = '3'  THEN 'Overstock'
         WHEN COALESCE(JSON_VALUE(ag.t2_cust_data, '$.SOURCEID_SEKTOR'), JSON_VALUE(ag.t1_cust_data, '$.SOURCEID_SEKTOR')) = '11' THEN 'Overstock'
