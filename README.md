@@ -1,38 +1,33 @@
-# 📊 SQL & Data Analysis Portfolio
+# 💼 Work Production Projects
 
-Welcome to my portfolio! This repository highlights my expertise in **Advanced SQL**, **Data Reconciliation**, and **Operational Analytics**. I specialize in solving complex business problems—from fixing critical inventory "data drift" to generating high-level executive insights.
-
-## 📂 SQL Projects
-
-### 1. [Resolving Inventory Discrepancies (Overstock)](./Resolving%20Inventory%20Discrepancies)
-* **The Challenge:** The "Overstock" department faced a critical data integrity issue where the main reporting tool failed to track "dummy items," causing a discrepancy between physical and digital stock.
-* **The SQL Solution:** Built a complex query using **CTEs** and **JSON Parsing** to reverse-engineer transaction logs. The logic stitches together disjointed "book-out" and "book-in" events to capture the complete lifecycle of an item.
-* **Impact:** Restored **100% accuracy** to the booking log and was adopted by the technical team as the primary source of truth.
-* **Key Skills:** `CTEs`, `JSON_VALUE`, `Self-Joins`, `Data Cleaning`.
-
-### 2. [Manual Sorting Deduplication (LUU Receive Booking)](./LUU-receive-manual-booking)
-* **The Challenge:** The manual sorting line produced rapid, duplicate scans that inflated inventory numbers. Legacy reporting could not distinguish between a double-scan and a legitimate new transaction.
-* **The SQL Solution:** Designed a strict sequencing algorithm using **Window Functions** (`ROW_NUMBER`). The query assigns a unique index to every step of a transaction, ensuring strictly 1:1 matching between scan-out and scan-in events.
-* **Impact:** Eliminated "phantom" inventory records and provided the operations team with accurate throughput metrics.
-* **Key Skills:** `Window Functions`, `PARTITION BY`, `Performance Tuning`, `Complex Logic`.
-
-### 3. [Transportation Insights for Chief of Operations (Goodcabs)](./Transportation%20Insights%20for%20Chief%20of%20Operations)
-* **The Challenge:** Goodcabs, a Tier-2 city cab service, needed an urgent assessment of their 2024 performance targets to support their growth strategy. The Chief of Operations required granular insights into trip volume, fare efficiency, and passenger satisfaction across 10 cities.
-* **The SQL Solution:** Executed a series of ad-hoc SQL analyses to evaluate Key Performance Indicators (KPIs):
-    * **Trip Efficiency:** Calculated city-level fare contributions (Average Fare/Km) to identify high-value locations.
-    * **Target Variance:** Developed a "Target vs. Actual" performance report, calculating monthly percentage gaps and categorizing performance as "Above" or "Below" targets.
-    * **Passenger Insights:** Analyzed new vs. repeat passenger rates to determine customer retention strength.
-* **Impact:** Delivered a data-backed foundation for the 2024 strategic plan, identifying underperforming cities and pricing opportunities.
-* **Key Skills:** `KPI Definition`, `Aggregations`, `Variance Analysis`, `Reporting`.
-* **Source:** [Codebasics Resume Project Challenge](https://codebasics.io/challenges/resume-project-challenge)
+Automation solutions built and deployed at **Zalando Lounge Logistics** (Ludwigsfelde, Germany).
 
 ---
 
-### 🛠️ Technical Skills
+## 🔥 Flagship Projects
 
-| Category | Skills |
-|----------|--------|
-| **Core SQL** | Joins, Aggregations, Subqueries, Unions |
-| **Advanced SQL** | Window Functions (`ROW_NUMBER`, `RANK`), CTEs (Common Table Expressions) |
-| **Data Handling** | JSON Parsing (`JSON_VALUE`), Regex (`REGEXP_LIKE`), Date Manipulation |
-| **Business Intelligence** | KPI Tracking, Variance Analysis, Ad-hoc Reporting |
+| Project | Tech | Impact |
+| :--- | :--- | :--- |
+| [🚀 Oracle → Google Sheets ETL](./oracle-sheets-looker-etl) | Python, Pandas, SQLAlchemy, Databricks Workflows, Google Chat V2 | **100 → <10 min/day** · Fully autonomous with adaptive ChatOps alerts |
+| [📊 Real-Time KPI TV Dashboard](./internal-transport-kpi-dashboard) | Python, SQLAlchemy, Databricks, Grafana, Google Sheets API | **Saved €10K** vs vendor · **<€70/month** infra · Zero-credential TV monitors |
+| [🔍 Overstock Inventory Reconciliation](./overstock-reconciliation) | Oracle SQL, CTEs, JSON_VALUE, REGEXP_LIKE | **100% accuracy restored** · Adopted by TGW as the standard for stock validation |
+
+## ⚡ Data Engineering & SQL
+
+| Project | Tech | Impact |
+| :--- | :--- | :--- |
+| [🔄 Manual Sorting Reconciliation](./overstock-manual-sorting) | Oracle SQL, Window Functions, JSON Parsing | **100% duplicate elimination** · Strict `ROW_NUMBER()` sequence matching with 3-step EAN fallback |
+| [📦 Order & Transport Efficiency Analysis](./order-transport-analysis) | Oracle SQL, Google Apps Script | **Root cause identified** · Proved system lacked prioritization → WCS logic updated by management |
+
+## 📈 BI & Compliance Dashboards
+
+| Project | Tech | Impact |
+| :--- | :--- | :--- |
+| [⚠️ DG Monitor: Hazardous Compliance](./dg-monitor) | Python, Databricks, Oracle, Looker Studio | **100% regulatory compliance** · Forecasting metric flags items before 20L threshold breach |
+| [📋 Quality Feed: Centralized Dashboard](./quality-feed) | ETL Pipeline, Scoring Logic, Documentation | **6+ sources unified** · Primary visual for daily steering meetings · Weighted scoring model |
+
+## 🤖 Process Automation
+
+| Project | Tech | Impact |
+| :--- | :--- | :--- |
+| [💡 Kaizando: Continuous Improvement](./kaizando) | Google Apps Script, Chat Webhooks, LanguageApp | **90% admin time reduction** · Auto-translation (EN/DE/PL) · Gamified monthly reward emails |
