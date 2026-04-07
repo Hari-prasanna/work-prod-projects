@@ -1,0 +1,39 @@
+# databricks.yml
+bundle:
+  name: luu_beauty_stock_pipeline
+
+resources:
+  jobs:
+    luu_beauty_stock_update:
+      name: LUU_Beauty_Stock_Update
+      
+      schedule:
+        quartz_cron_expression: "0 40 5,14 ? * MON-FRI"
+        timezone_id: "Europe/Berlin" 
+        pause_status: "PAUSED"
+
+
+      tasks:
+        - task_key: ETL_Task
+ 
+          notebook_task:
+            notebook_path: ./src/etl_pipeline.py
+
+        - task_key: Notify_Task
+          depends_on:
+            - task_key: ETL_Task
+     
+          notebook_task:
+            notebook_path: ./src/notification_sender.py
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-0c31c458-b8aa.cloud.databricks.com
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-0c31c458-b8aa.cloud.databricks.com

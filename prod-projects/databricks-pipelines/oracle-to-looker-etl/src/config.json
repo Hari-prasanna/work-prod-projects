@@ -1,0 +1,16 @@
+{
+    "google_sheet": {
+        "sheet_id": "1bQ-q1-mo3HqLgYUIe45UL9b1G7UaZ2wWjJhfWLP6DU8",
+        "upload_tab": "JOIN",
+        "calc_tab": "DG Stocks",
+        "time_tab": "Block_dash"
+    },
+    "file_paths": {
+        "sql_query": "zal_bestand_query.sql"
+    },
+    "dashboard_links": {
+        "looker_dashboard": "https://lookerstudio.google.com/u/0/reporting/ceba80f6-aad8-45e1-9e40-d34b32f1827b/page/p_szphsjtwmd",
+        "sheet_overview": "https://docs.google.com/spreadsheets/d/1bQ-q1-mo3HqLgYUIe45UL9b1G7UaZ2wWjJhfWLP6DU8/edit?gid=439685456#gid=439685456",
+        "sheet_manual": "https://docs.google.com/spreadsheets/d/1bQ-q1-mo3HqLgYUIe45UL9b1G7UaZ2wWjJhfWLP6DU8/edit?gid=1155322452#gid=1155322452"
+    }
+}

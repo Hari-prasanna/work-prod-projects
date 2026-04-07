@@ -1,0 +1,7 @@
+oracledb
+gspread
+oauth2client
+pandas
+sqlalchemy
+requests
+pytz
