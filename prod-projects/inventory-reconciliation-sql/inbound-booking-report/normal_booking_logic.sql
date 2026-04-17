@@ -1,18 +1,3 @@
-/*
- * SCRIPT: overstock_transaction_query.sql
- * PURPOSE: Extracts and reconciles inventory transactions (both 'Normal' and 'Dummy' goods)
- * moving from Overstock locations to 'OV' destinations.
- * It matches the initial transaction (t1) with its completion (t2).
- *
- * PARAMETERS:
- * :start_datetime (VARCHAR2) - The start of the time window. Format: 'DD.MM.YYYY HH24:MI:SS'
- * :end_datetime (VARCHAR2)   - The end of the time window. Format: 'DD.MM.YYYY HH24:MI:SS'
- * :ref_lhm_filter (VARCHAR2) - A filter for the Reference_LHM. Supports:
- * 1. Single value (e.g., 'REF123')
- * 2. Comma-separated list (e.g., 'REF123,REF456')
- * 3. LIKE wildcard (e.g., 'REF%')
- */
-
 WITH
     -- CTE 1: Captures the initial transaction for 'Normal Goods' leaving an Overstock location.
     normal_goods_t1 AS (
@@ -98,15 +83,24 @@ WITH
             t2.LHMNR AS ZIEL_LHM, t1.MENGE, t1.Reference_LHM,
             'NORMAL' AS good_type, 
             t2.CUST_DATA AS t2_cust_data,
-            -- Updated Quality Logic for Normal Goods with SORTABLE_ART check
             CASE
-                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '1' AND LOWER(JSON_VALUE(t1.CUST_DATA, '$.SORTABLE_ART')) = 'false' THEN 'A -> B'
+                WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '1' AND LOWER(JSON_VALUE(t1.CUST_DATA, '$.SORTABLE_ART')) = 'false' THEN 'B'
                 WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '1' THEN 'A'
                 WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '2' THEN 'B'
                 WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '3' THEN 'C'
                 WHEN JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR') = '4' THEN 'D'
                 ELSE 'Unknown'
-            END AS Quality
+            END AS Quality,
+            -- Category Logic for Normal Goods
+            DECODE(
+                JSON_VALUE(t1.CUST_DATA, '$.CATEGORYID_ART'),
+                '1', 'Schuhe',
+                '2', 'Textil',
+                '3', 'ACC',
+                '4', 'Home',
+                '5', 'Beauty',
+                'Unknown'
+            ) AS Category
         FROM normal_goods_t1 t1
         LEFT JOIN normal_goods_t2 t2 ON t1.LOCAL_TRANSACTION_ID = t2.LOCAL_TRANSACTION_ID
         WHERE 
@@ -127,7 +121,6 @@ WITH
             t2.LHMNR AS ZIEL_LHM, t1.MENGE, t1.Reference_LHM,
             'DUMMY' AS good_type, 
             t2.CUST_DATA AS t2_cust_data,
-            -- Updated Quality Logic for Dummy Goods with SORTABLE_ART check
             CASE
                 WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '1' 
                  AND COALESCE(JSON_VALUE(t2.CUST_DATA, '$.SORTABLE_ART'), JSON_VALUE(t1.CUST_DATA, '$.SORTABLE_ART')) = 'false' THEN 'B'
@@ -136,7 +129,20 @@ WITH
                 WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '3' THEN 'C'
                 WHEN COALESCE(JSON_VALUE(t2.CUST_DATA, '$.QUALITYID_ART'), JSON_VALUE(t1.CUST_DATA, '$.QUALITYID_SEKTOR')) = '4' THEN 'D'
                 ELSE 'Unknown'
-            END AS Quality
+            END AS Quality,
+            -- Category Logic for Dummy Goods (Checks T2 first, falls back to T1)
+            DECODE(
+                COALESCE(
+                    JSON_VALUE(t2.CUST_DATA, '$.CATEGORYID_ART'),
+                    JSON_VALUE(t1.CUST_DATA, '$.CATEGORYID_ART')
+                ),
+                '1', 'Schuhe',
+                '2', 'Textil',
+                '3', 'ACC',
+                '4', 'Home',
+                '5', 'Beauty',
+                'Unknown'
+            ) AS Category
         FROM dummy_goods_t1 t1
         LEFT JOIN dummy_goods_t2 t2 ON t1.LOCAL_TRANSACTION_ID = t2.LOCAL_TRANSACTION_ID
         WHERE 
@@ -178,15 +184,7 @@ SELECT
 
     ag.Quality, 
 
-    DECODE(
-        JSON_VALUE(ag.t1_cust_data, '$.CATEGORYID_ART'),
-        '1', 'Schuhe',
-        '2', 'Textil',
-        '3', 'ACC',
-        '4', 'Home',
-        '5', 'Beauty',
-        'Unknown'
-    ) AS Category,
+    ag.Category, -- Pulled directly from the combined_transactions CTE
 
     CASE
         WHEN ag.ZIEL_LHM LIKE '50%' THEN 'Overstock'
