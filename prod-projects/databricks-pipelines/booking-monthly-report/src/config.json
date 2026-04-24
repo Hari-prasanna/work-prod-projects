@@ -1,0 +1,65 @@
+{
+  "shift_settings": {
+    "timezone": "Europe/Berlin"
+  },
+  "custom_brands": {
+    "2001813587830": "Dummy Marke Other B",
+    "2001813587823": "Dummy Marke Textiles B",
+    "2001813587847": "Dummy Marke Shoes B",
+    "2001813587861": "Dummy Marke Accessoires B",
+    "2001813587878": "Dummy Marke Textiles C",
+    "2001813587892": "Dummy Marke Shoes C",
+    "2001813587915": "Dummy Marke Accessoires C",
+    "2001813587946": "Dummy Marke Shoes D",
+    "2001813587922": "Dummy Marke Textiles D"
+  },
+  "reports": [
+    {
+      "name": "B-Beauty",
+      "google_sheet_id": "1XdjZCylC0zZ1AuZjg6294IL2uo-n86jY_ejQZiVhShY",
+      "sql_query_file": "b_beauty_query.sql",
+      "column_rename_map": {
+        "TIMESTAMP": "Timestamp",
+        "QUALITY": "Quality",
+        "CATEGORY": "Category",
+        "DISTRIBUTION_CHANNEL": "zielkanal",
+        "REFERENCE_LHM": "Reference_LHM",
+        "BRAND_NAME": "brand_name"
+      },
+      "columns_to_keep": [
+        "Timestamp", 
+        "EAN", 
+        "Quality", 
+        "Category", 
+        "zielkanal", 
+        "Reference_LHM", 
+        "brand_name"
+      ]
+    },
+    {
+      "name": "ZFS",
+      "google_sheet_id": "1XdjZCylC0zZ1AuZjg6294IL2uo-n86jY_ejQZiVhShY",
+      "sql_query_file": "zfs_query.sql",
+      "column_rename_map": {
+        "TIMESTAMP": "Timestamp",
+        "QUALITY": "Quality",
+        "CATEGORY": "Category",
+        "DISTRIBUTION_CHANNEL": "zielkanal",
+        "REFERENCE_LHM": "Reference_LHM",
+        "BRAND_NAME": "brand_name"
+      },
+      "columns_to_keep": [
+        "Timestamp", 
+        "EAN", 
+        "Quality", 
+        "Category", 
+        "zielkanal", 
+        "Reference_LHM", 
+        "brand_name"
+      ]
+    }
+  ],
+  "databricks_catalogs": {
+    "ean_mapping_table": "zalando_shared.prod.d_outlet_article_simple"
+  }
+}
