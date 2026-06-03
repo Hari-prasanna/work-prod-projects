@@ -1,0 +1,14 @@
+{
+  "google_sheet": {
+    "sheet_id": "1JUaU7tCUjctqCNos0EdgwAqATx_7Of1IL8I7Rr5L1Os",
+    "upload_tab": "test"
+  },
+  "file_paths": {
+    "sql_query": "shift_report.sql"
+  },
+  "shift_settings": {
+    "timezone": "Europe/Berlin",
+    "start_time": "05:50:00",
+    "end_time": "23:40:00"
+  }
+}
