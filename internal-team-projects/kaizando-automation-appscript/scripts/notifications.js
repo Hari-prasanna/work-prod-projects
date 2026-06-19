@@ -5,8 +5,14 @@
 
 function sendTranslatedNotification() {
   // 1. CONFIGURATION
-  // Note: In a production environment, keep secrets like Webhook URLs in Script Properties.
-  var webhookUrl = "https://chat.googleapis.com/v1/spaces/AAQAsrFtQ9g/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=DzTeAWNh1aWaEwPwtJ86Z6ZQvEp7R3TdZZ5xALQCe5I";
+  // The webhook URL is a secret (it embeds a key and token). Store it in
+  // Script Properties, never in source: Project Settings > Script Properties,
+  // add a property named CHAT_WEBHOOK_URL. Set it once via the Apps Script
+  // editor or: PropertiesService.getScriptProperties().setProperty('CHAT_WEBHOOK_URL', '<url>')
+  var webhookUrl = PropertiesService.getScriptProperties().getProperty("CHAT_WEBHOOK_URL");
+  if (!webhookUrl) {
+    throw new Error("CHAT_WEBHOOK_URL is not set in Script Properties.");
+  }
   
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Translated_Master_Response_sheet");

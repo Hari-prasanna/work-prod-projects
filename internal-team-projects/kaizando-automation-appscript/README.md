@@ -1,147 +1,58 @@
-# Kaizando: Automated Continuous Improvement System 🚀
+# kaizando-automation-appscript
 
-![Google Apps Script](https://img.shields.io/badge/Tech-Google_Apps_Script-blue) ![Integration](https://img.shields.io/badge/Integration-Google_Chat_Webhook-green) ![Status](https://img.shields.io/badge/Impact-90%25_Efficiency_Gain-orange)
+Google Apps Script automation for the LUU **Kaizen** (continuous-improvement)
+idea programme. Ideas arrive via a Form into a spreadsheet; this script
+translates them, notifies management, and keeps contributors engaged — removing
+the manual translation and daily spreadsheet-checking that used to gate the flow.
 
-## 📖 Executive Summary
-**Kaizando** (a portmanteau of *Kaizen* and *Zalando*) is an internal operational excellence tool designed to crowd-source process improvement ideas from frontline employees.
+Three things run off the intake spreadsheet:
 
-Previously, this process was manual, prone to delays, and suffered from language barriers across the diverse workforce (English, German, Polish). I engineered a **full-stack automation solution** using Google Ecosystem tools that automates data ingestion, translation, notification, and gamification.
+1. **Translation** — new entries (EN/PL) are normalised to German.
+2. **Notification** — each new idea posts a Google Chat card (problem, proposed
+   solution, and a link to the row) to the management channel.
+3. **Gamification** — a monthly job emails contributors their reward-point
+   balance, greeted in their language.
 
----
+## Project layout
 
-## 🧐 The Challenge
-The Quality Management team faced three specific bottlenecks:
-1.  **Language Barrier:** Ideas submitted in Polish or English required manual translation for the German-speaking decision board.
-2.  **Latency:** Managers had to manually check spreadsheets to find new entries, slowing down implementation.
-3.  **Engagement:** Employees lacked visibility into their "Reward Points," leading to lower participation rates.
-
----
-
-## ⚙️ Solution Architecture
-
-I designed an automated pipeline using **Google Apps Script (GAS)** as the backend engine.
-
-```mermaid
-graph TD
-    A["User Submits Idea (EN/DE/PL)"] -->|Google Form| B(Raw Data Sheet)
-    B -->|Trigger| C{Apps Script Engine}
-    C -->|Native Function| D[LanguageApp Service]
-    D -->|Normalized Text| E[Translated Master Overview DE]
-    C -->|JSON Payload| F[Google Chat Webhook]
-    F -->|Rich Card| G[Management Channel]
-    C -->|Scheduled Trigger| H[HTML Email Engine]
-    H -->|Monthly Update| I[Employee Inbox]
 ```
----
-
-## 📸 Key Features & Visuals
-
-### 1. Real-Time "Rich Card" Notifications
-Replacing boring email alerts, I implemented **JSON Webhooks** to push "Rich Cards" to Google Chat. This allows managers to see the **Problem** and **Proposed Solution** instantly without opening the database.
-
-![Google Chat Notification](./images/chat-card.png)
-
-*Automated alert sent to the Quality Management channel immediately upon submission.*
-
-### 2. Monthly Gamification Reports (HTML)
-To boost engagement, the system runs a monthly cron job that sends personalized HTML emails to employees, displaying their current reward points balance and greeting them in their native language.
-
-![HTML Email](./images/email-preview.png)
-*Dynamic HTML email with conditional formatting based on user data.*
-
----
-
-## 💻 Technical Implementation
-
-### 1. The Notification Engine (JSON Webhook)
-This script constructs a `CardV2` JSON object and posts it to the Google Chat API. This ensures the notification looks like a native app widget rather than a plain text message.
-
-```javascript
-function sendChatNotification(ticketNum, problem, solution) {
-  var webhookUrl = "YOUR_WEBHOOK_URL_HERE";
-  
-  // Constructing the Card Payload
-  var payload = {
-    "cardsV2": [{
-      "cardId": "unique-id-" + ticketNum,
-      "card": {
-        "header": {
-          "title": "Neue Kaizando Idee 💡",
-          "subtitle": "Task Nr: LUU-" + ticketNum
-        },
-        "sections": [{
-          "widgets": [
-            {
-              "textParagraph": {
-                "text": "<b>Problem:</b><br>" + problem
-              }
-            },
-            {
-              "buttonList": {
-                "buttons": [{
-                  "text": "🔗 Open Task",
-                  "onClick": { "openLink": { "url": rowUrl } }
-                }]
-              }
-            }
-          ]
-        }]
-      }
-    }]
-  };
-
-  // Sending the POST request
-  UrlFetchApp.fetch(webhookUrl, {
-    "method": "post",
-    "contentType": "application/json",
-    "payload": JSON.stringify(payload)
-  });
-}
+kaizando-automation-appscript/
+├── scripts/
+│   ├── translation.js     # LanguageApp translation of new entries → German
+│   ├── notifications.js    # Chat Card V2 webhook on new submissions
+│   └── gamification.js     # monthly HTML reward-point emails
+└── images/                 # chat card + email previews
 ```
 
-### 2. The Auto-Translation Middleware
-To ensure data consistency, this script acts as middleware. It detects non-empty cells in the source columns and calls the `LanguageApp` class to normalize text to German (`de`).
+## How it works
 
-```javascript
-function translateOverviewColumns() {
-  // Logic to detect source language and translate to German
-  if (sourceProb !== "") {
-    try {
-      var transProb = LanguageApp.translate(sourceProb, "", "de");
-      var transSol = LanguageApp.translate(sourceSol, "", "de");
-      
-      // Updates the Master Sheet with the translated text
-      sheet.getRange(row, targetCol).setValue(transProb);
-    } catch (e) {
-      console.error("Translation API Error: " + e);
-    }
-  }
-}
-```
+- **Translation.** `translation.js` detects non-empty source cells and calls
+  `LanguageApp.translate(text, "", "de")`, writing the German text into the
+  master tab.
+- **Notifications.** `notifications.js` walks new rows, builds a Chat
+  `cardsV2` payload (decoratedText + button), posts it via `UrlFetchApp`, and
+  marks the row `Sent` so it isn't re-notified. Triggered on edit/form submit.
+- **Gamification.** `gamification.js` builds a per-recipient HTML email from a
+  template and sends it via `GmailApp`, on a monthly time-based trigger.
 
-### 3. Dynamic HTML Email Generation
-I used template literals to inject user data (Name, Points) into an HTML structure, enabling a professional, branded email experience.
+## Setup
 
-```javascript
-// Parsing logic to humanize the email greeting
-var namePart = emailAddress.split('@')[0]; 
-var firstName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+This is bound Apps Script, not a standalone repo — the code lives in the
+container spreadsheet's script project. To configure:
 
-// HTML Template
-var emailBody = `
-  <p>Hallo ${firstName}👋,</p>
-  <p>Vielen Dank für deinen Beitrag!</p>
-  <p>Dein aktuelles Prämienguthaben beträgt <b style="color: #0000FF;">${points} Punkte.</b></p>
-  <hr>
-  <p>Keep the ideas coming!</p>
-`;
+1. **Webhook secret.** In *Project Settings → Script Properties*, add
+   `CHAT_WEBHOOK_URL` with the Google Chat space's webhook URL.
+   `notifications.js` reads it via `PropertiesService` — do **not** paste the URL
+   into the source.
+2. **Triggers.** Add an on-submit/on-edit trigger for the translation +
+   notification flow, and a monthly time-based trigger for the email job.
+3. **Sheet/tab names.** The scripts reference specific tab names
+   (e.g. `Translated_Master_Response_sheet`); update them to match your sheet.
 
-GmailApp.sendEmail(emailAddress, subject, "Fallback Text", { htmlBody: emailBody });
-```
+> The webhook URL embeds a key and a token — treat it as a credential. It belongs
+> in Script Properties only.
 
----
+## Notes
 
-## 🚀 Results & Impact
-* **90% Reduction in Admin Time:** Automated the manual translation and data entry, saving the team ~15 minutes per day.
-* **Zero Latency:** Shifted from "Daily Checks" to "Instant Notifications," allowing for immediate feedback on urgent safety or process ideas.
-* **Scalability:** The system handles inputs from 3 different languages and consolidates them into a single source of truth without human intervention.
+`UrlFetchApp` quota and `LanguageApp` limits apply; the notification loop sleeps
+briefly between sends to stay within rate limits.

@@ -1,0 +1,15 @@
+{
+    "google_sheet": {
+        "sheet_id": "<TARGET_GOOGLE_SHEET_ID>",
+        "upload_tab": "UPH_KPIs"
+    },
+    "shift_settings": {
+        "timezone": "Europe/Berlin",
+        "start_time": "05:50:00",
+        "end_time": "23:40:00",
+        "day_offset": 0
+    },
+    "file_paths": {
+        "sql_query": "uph_kpis_query.sql"
+    }
+}

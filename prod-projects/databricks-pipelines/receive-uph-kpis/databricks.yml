@@ -1,0 +1,63 @@
+bundle:
+  name: receive_uph_kpis
+
+resources:
+  jobs:
+    receive_uph_kpis:
+      name: receive_uph_kpis
+
+      # SCHEDULE CONFIGURATION
+      schedule:
+        quartz_cron_expression: "0 35 23 ? * MON-FRI"
+        timezone_id: "Europe/Berlin"
+        pause_status: "PAUSED"
+      
+      # CLUSTER CONFIGURATION
+      job_clusters:
+        - job_cluster_key: Job_cluster
+          new_cluster:
+            spark_version: 17.3.x-scala2.13
+            policy_id: "000294BBB7FAF7AF"
+            node_type_id: m6gd.large
+            num_workers: 0
+            data_security_mode: SINGLE_USER
+            spark_conf:
+              spark.databricks.cluster.profile: singleNode
+              spark.master: local[*]
+            custom_tags:
+              ResourceClass: SingleNode
+              cost_allocation: "50019562"
+
+      # TASK DEFINITIONS
+      tasks:
+        - task_key: UPH_KPIs_Task
+          job_cluster_key: Job_cluster
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          # FIX: Changed from notebook_task to spark_python_task
+          spark_python_task:
+            python_file: ./src/receive_uph_kpis.py
+          libraries:
+            - pypi:
+                package: oracledb==2.1.2
+            - pypi:
+                package: gspread==6.1.0
+            - pypi:
+                package: sqlalchemy==2.0.25
+            - pypi:
+                package: pytz
+
+# TARGET ENVIRONMENTS
+targets:
+  dev:
+    mode: development
+    default: true
+    presets:
+      name_prefix: "[dev ${workspace.current_user.short_name}] "
+    workspace:
+      host: https://zalando-e2.cloud.databricks.com
+
+  prod:
+    mode: production
+    workspace:
+      host: https://zalando-e2.cloud.databricks.com

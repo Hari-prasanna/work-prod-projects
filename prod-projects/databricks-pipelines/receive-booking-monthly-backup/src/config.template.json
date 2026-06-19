@@ -1,0 +1,43 @@
+{
+  "shift_settings": {
+    "timezone": "Europe/Berlin"
+  },
+  "custom_brands": {
+    "<DUMMY_EAN_1>": "Dummy Home B",
+    "<DUMMY_EAN_2>": "Dummy Shoes All"
+  },
+  "sop_link": "<GOOGLE_DOC_SOP_URL>",
+  "reports": [
+    {
+      "name": "B-Beauty",
+      "google_sheet_id": "<TARGET_GOOGLE_SHEET_ID>",
+      "sql_query_file": "b_beauty_query.sql",
+      "column_rename_map": {
+        "TIMESTAMP": "Timestamp",
+        "QUALITY": "Quality",
+        "CATEGORY": "Category",
+        "DISTRIBUTION_CHANNEL": "zielkanal",
+        "REFERENCE_LHM": "Reference_LHM",
+        "BRAND_NAME": "brand_name"
+      },
+      "columns_to_keep": ["Timestamp", "EAN", "Quality", "Category", "zielkanal", "Reference_LHM", "brand_name"]
+    },
+    {
+      "name": "ZFS",
+      "google_sheet_id": "<TARGET_GOOGLE_SHEET_ID>",
+      "sql_query_file": "zfs_query.sql",
+      "column_rename_map": {
+        "TIMESTAMP": "Timestamp",
+        "QUALITY": "Quality",
+        "CATEGORY": "Category",
+        "DISTRIBUTION_CHANNEL": "zielkanal",
+        "REFERENCE_LHM": "Reference_LHM",
+        "BRAND_NAME": "brand_name"
+      },
+      "columns_to_keep": ["Timestamp", "EAN", "Quality", "Category", "zielkanal", "Reference_LHM", "brand_name"]
+    }
+  ],
+  "databricks_catalogs": {
+    "ean_mapping_table": "zalando_shared.prod.d_outlet_article_simple"
+  }
+}

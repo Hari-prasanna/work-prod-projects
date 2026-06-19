@@ -1,54 +1,66 @@
-# Overstock Inventory Reconciliation & Sorting Engine
+# inbound-booking-report — inventory reconciliation & sorting dedup
 
-![SQL](https://img.shields.io/badge/Language-Oracle_SQL-orange)
-![Data Engineering](https://img.shields.io/badge/Focus-Data_Engineering_%26_ETL-blue)
-![Technique](https://img.shields.io/badge/Technique-Window_Functions-purple)
-![Impact](https://img.shields.io/badge/Impact-100%25_Accuracy_Restored-green)
+Two Oracle SQL solutions for data-integrity problems in the Overstock department.
+Both are read-only analytical queries (no DDL/DML); they reconstruct correct
+figures from raw transaction logs.
 
-## 📋 Summary
+## Part 1 — inventory reconciliation
 
-Two SQL solutions fixing interconnected data integrity issues in the Overstock department:
+The legacy system silently dropped "dummy item" transactions, causing stock
+drift. The query rebuilds each item's lifecycle by joining its **book-out**
+(`MENGE < 0`) record to its **book-in** (`MENGE = 1`) record on
+`LOCAL_TRANSACTION_ID`.
 
-| Problem | Solution | Result |
-| :--- | :--- | :--- |
-| Legacy system silently dropped "dummy item" transactions → stock drift | CTE-based algorithm stitching "book-out" (`MENGE < 0`) to "book-in" (`MENGE = 1`) via `LOCAL_TRANSACTION_ID` | **100% accuracy restored** · Adopted by TGW as the standard |
-| Manual sorting area generated duplicate/out-of-sequence scans → inflated metrics | `ROW_NUMBER()` window function enforcing strict 1:1 sequence matching (`t1.rn = t2.rn`) | **100% duplicates eliminated** |
-
----
-
-## 🛠️ Part 1: Inventory Reconciliation
-
-**Core idea:** Track the complete lifecycle of an item by joining its departure and arrival records.
-
-- **CTE Decomposition:** Separate pipelines for Normal Goods (`TPARTNR = 520`) and Dummy Goods (`TPARTNR = 614/207`), merged via `UNION ALL`
-- **JSON Extraction:** `JSON_VALUE` on `CUST_DATA` CLOB to normalize SKU, Quality, Category, Source Channel, and Distribution Channel into tabular columns
-- **Dual-Source Quality Logic:** `COALESCE` across t2/t1 records with a `SORTABLE_ART` override for edge cases
-- **Parameterized Filtering:** Supports single values, comma-separated lists, and LIKE wildcards — no dynamic SQL
-- **Business Normalization:** `DECODE` / `CASE` translates system codes to human-readable terms (e.g., `QualityID: 1` → `Grade A`)
+- **CTE decomposition.** Separate pipelines for normal goods (`TPARTNR = 520`)
+  and dummy goods (`TPARTNR = 614/207`), merged with `UNION ALL`.
+- **JSON extraction.** `JSON_VALUE` over the `CUST_DATA` CLOB normalises SKU,
+  quality, category, source channel, and distribution channel into columns.
+- **Dual-source quality logic.** `COALESCE` across the two records, with a
+  `SORTABLE_ART` override for edge cases.
+- **Parameterised filtering.** Single values, comma-separated lists, and LIKE
+  wildcards — no dynamic SQL.
+- **Code translation.** `DECODE`/`CASE` map system codes to readable terms
+  (e.g. `QualityID 1` → `Grade A`).
 
 ```text
-normal_goods_t1 ──┐                                  
-                  ├─ JOIN on LOCAL_TRANSACTION_ID ──┐
-normal_goods_t2 ──┘                                ├── UNION ALL ── FINAL SELECT
-dummy_goods_t1  ──┐                                │
-                  ├─ JOIN on LOCAL_TRANSACTION_ID ──┘
-dummy_goods_t2  ──┘
+normal_goods_t1 ─┐
+                 ├─ JOIN on LOCAL_TRANSACTION_ID ─┐
+normal_goods_t2 ─┘                                ├─ UNION ALL ─ FINAL SELECT
+dummy_goods_t1  ─┐                                │
+                 ├─ JOIN on LOCAL_TRANSACTION_ID ─┘
+dummy_goods_t2  ─┘
 ```
 
-## 🛠️ Part 2: Manual Sorting Deduplication
+File: `normal_booking_logic.sql`
 
-**Core idea:** Assign a strict sequence index so each book-out matches exactly one book-in.
+## Part 2 — manual-sorting deduplication
 
-- **`ROW_NUMBER() OVER (PARTITION BY id ORDER BY sequence)`** — unique index per transaction step, preventing cross-join duplicates
-- **3-Step EAN Fallback:** Source EAN → `LASTEANGOTFROMMAUS` from JSON → Destination EAN
-- **`/*+ MATERIALIZE */` hints** — forces Oracle to cache CTE results for large date ranges
+The manual sorting area produced duplicate / out-of-sequence scans that inflated
+metrics. A `ROW_NUMBER()` window function assigns a strict sequence index so each
+book-out matches exactly one book-in (`t1.rn = t2.rn`), preventing cross-join
+duplication.
 
----
+- **3-step EAN fallback.** Source EAN → `LASTEANGOTFROMMAUS` from JSON →
+  destination EAN, so even damaged barcodes resolve.
+- **`/*+ MATERIALIZE */` hints** cache CTE results for large date ranges.
 
-## 🚀 Impact
+File: `manual_sorting_logic.sql`
 
-- **100% inventory accuracy restored** — missing "dummy" transactions fully captured
-- **100% duplicate elimination** — manual sorting metrics now trustworthy
-- **99.9% barcode traceability** — even damaged barcodes resolved via fallback logic
-- **Cross-team adoption** — TGW implemented the reconciliation query as their primary source of truth
-- **Historical correction** — enabled retroactive inventory fixes for previous periods
+## Project layout
+
+```
+inbound-booking-report/
+├── normal_booking_logic.sql     # Part 1: reconciliation
+├── manual_sorting_logic.sql     # Part 2: sequence-matched dedup
+└── luu-volumes/                 # supporting volume queries
+    ├── inbound.sql
+    ├── receive.sql
+    └── akl.sql
+```
+
+## Running
+
+These are parameterised Oracle queries. Run them in your SQL client (or via the
+Databricks Oracle connection used by the pipelines), supplying the date-range and
+filter bind variables at the top of each file. Start with a narrow date range —
+the reconciliation joins are wide.

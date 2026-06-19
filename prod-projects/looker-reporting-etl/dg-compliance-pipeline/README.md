@@ -1,41 +1,42 @@
-# LUU DG Monitor: Automated Hazardous Compliance Pipeline
+# dg-compliance-pipeline (DG Monitor)
 
-## 📌 Project Overview
-The **Dangerous Goods (DG) Monitor** is a safety-critical analytics solution designed to manage hazardous inventory at the Ludwigsfelde warehouse.
+Dangerous-goods compliance monitor for the LUU site. A Python/Databricks job
+pulls stock and handling-unit data from Oracle, applies regulatory
+classification, and publishes a live Looker Studio dashboard so the outlet and
+compliance teams can keep hazardous volumes under their storage thresholds.
 
-Managing hazardous materials requires strict adherence to volume thresholds (e.g., <20 Liters for specific zones). Previously, tracking this required manual data merging, leading to stale data and compliance risks.
+The upstream extract/load is the
+[oracle-to-looker-etl](../../databricks-pipelines/oracle-to-looker-etl) pipeline;
+this folder documents the dashboard and the compliance logic on top of it.
 
-**Objective:** I built an automated ETL pipeline and forecasting dashboard to provide real-time visibility into DG stocks, ensuring regulatory compliance and streamlining outlet prioritization.
-
-## 🏗️ The Automated Pipeline (ETL)
-To solve the latency of manual reporting, I migrated the data processing to a cloud-based automated pipeline.
+## How it works
 
 ```mermaid
 graph LR
-    A[Oracle Database] -->|Raw Data| B(Databricks / Python);
-    B -->|Transform & Organize| B;
-    B -->|Clean JSON| C{Google Sheets API};
-    C -->|Live Sync| D[DG Monitor Dashboard];
-    style B fill:#f9f,stroke:#333,stroke-width:2px
+    A[Oracle: stock + handling units] -->|Python / Databricks| B[Merge & classify]
+    B -->|net volume, UN/class, days-difference| C[Google Sheets API]
+    C -->|live sync| D[DG Monitor dashboard]
 ```
 
-* **Extraction:** An automated Python script queries two separate Oracle sources to pull raw stock and handling unit data.
-* **Transformation:** The system merges these sources, applies regulatory logic (UN-Number classification), and calculates "Net Volume" per location.
-* **Forecasting Logic:** The script calculates a "Days Difference" (DD) metric to predict when items will become critical, flagging them for priority removal before they breach compliance limits.
+- **Extract.** Queries two Oracle sources for raw stock and handling-unit data.
+- **Transform.** Merges them, applies UN-number classification, and computes net
+  volume per location.
+- **Forecast.** A "days difference" (DD) metric estimates when an item will
+  approach its limit, flagging it for priority removal before a breach.
 
-### 📊 The Dashboard & Features
+![DG stocks monitor dashboard](images/dg-monitor.png)
 
-The frontend provides a "Control Tower" view for the Outlet and Compliance teams.
+## Dashboard
 
-![DG Stocks Monitor Dashboard](images/dg-monitor.png)
+- Drill-down from total volume → handling unit (carton) → SKU.
+- Volumes broken out by hazard class (e.g. 2.1 vs 3) and UN number
+  (e.g. UN 1950 aerosols), which is what the legal storage limits key on.
+- A side table highlights stock age and flags high-DD items for "stock picked"
+  prioritisation.
 
-**Key Features**
-* **Granular Visibility:** Users can drill down from high-level "Total Volume" (19,349 Liters) to specific Handling Units (cartons) and SKU levels.
-* **Class & UN Tracking:** The dashboard visualizes volumes by Hazard Class (e.g., Class 2.1 vs 3) and specific UN Numbers (e.g., UN 1950 Aerosols), which is critical for legal storage limits.
-* **Automated Alerts:** The table on the right highlights stock age and flags high-risk items, allowing teams to prioritize "Stock Picked" tasks effectively based on the Days Difference (DD) metric.
+## Notes
 
-### 🚀 Impact & Results
-
-* **Risk Mitigation:** Automated alerts prevent threshold breaches, ensuring 100% compliance with safety regulations.
-* **Operational Efficiency:** Replaced a manual, reactive process with a proactive forecasting model, allowing teams to plan stock movements in advance.
-* **Unified View:** Successfully consolidated disparate data sources into a single source of truth for the entire site.
+The dashboard is published in Looker Studio and reads from the Google Sheet that
+`oracle-to-looker-etl` maintains. To change what the dashboard shows, adjust the
+extract/clean logic in that pipeline; this folder holds the documentation and
+screenshot for the compliance view.

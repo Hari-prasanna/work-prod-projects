@@ -1,0 +1,16 @@
+{
+    "google_sheet": {
+        "sheet_id": "<TARGET_GOOGLE_SHEET_ID>",
+        "upload_tab": "JOIN",
+        "calc_tab": "DG Stocks",
+        "time_tab": "Block_dash"
+    },
+    "file_paths": {
+        "sql_query": "zal_bestand_query.sql"
+    },
+    "dashboard_links": {
+        "looker_dashboard": "<LOOKER_STUDIO_REPORT_URL>",
+        "sheet_overview": "<GOOGLE_SHEET_OVERVIEW_URL>",
+        "sheet_manual": "<GOOGLE_SHEET_MANUAL_IMPORT_URL>"
+    }
+}

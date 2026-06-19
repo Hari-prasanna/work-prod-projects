@@ -1,0 +1,4 @@
+oracledb==2.1.2
+gspread==6.1.0
+sqlalchemy==2.0.25
+pytz
