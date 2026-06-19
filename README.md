@@ -1,6 +1,6 @@
 # work-prod-projects
 
-Data engineering and automation work built for the **LUU (Ludwigsfelde) logistics
+Automation work built for the **LUU (Ludwigsfelde) logistics
 site at Zalando** — production Databricks pipelines, Oracle SQL reconciliation
 logic, and Google Workspace automations.
 
@@ -12,19 +12,19 @@ organised and the conventions every project follows.
 
 ```
 work-prod-projects/
-├── prod-projects/                       # Scheduled / deployed work
-│   ├── databricks-pipelines/            # Databricks Asset Bundle jobs
-│   │   ├── dbricks-utils/               #   shared helpers imported by the jobs
-│   │   ├── oracle-to-looker-etl/        #   Oracle → Google Sheets → Looker (DG stocks)
-│   │   ├── realtime-data-stream/        #   5-min transport KPI loop → Grafana TV
-│   │   ├── receive-booking-monthly-backup/  # month-end B-Beauty / ZFS snapshot
-│   │   ├── receive-uph-kpis/            #   nightly units-per-hour KPIs
-│   │   └── shift-report-daily-update/   #   nightly shift report
-│   ├── inventory-reconciliation-sql/    # Oracle SQL: stock reconciliation & dedup
-│   └── looker-reporting-etl/            # BI dashboards (DG monitor, quality feed)
-└── internal-team-projects/              # One-off / Apps Script tooling
-    ├── kaizando-automation-appscript/   #   Kaizen idea intake + chat + email
-    └── order-duration-efficiency-analysis/  # transport-congestion analysis
+├── prod-projects/                      
+│   ├── databricks-pipelines/           
+│   │   ├── dbricks-utils/             
+│   │   ├── oracle-to-looker-etl/       
+│   │   ├── realtime-data-stream/      
+│   │   ├── receive-booking-monthly-backup/  
+│   │   ├── receive-uph-kpis/            
+│   │   └── shift-report-daily-update/   
+│   ├── inventory-reconciliation-sql/    
+│   └── looker-reporting-etl/            
+└── internal-team-projects/             
+    ├── kaizando-automation-appscript/   
+    └── order-duration-efficiency-analysis/  
 ```
 
 ## Project index
