@@ -1,6 +1,4 @@
-# --- Secrets & local config -------------------------------------------------
-# Real configs hold workspace-specific Sheet IDs / paths. Commit the
-# *.template.json files instead and keep the resolved copy local.
+
 config.json
 **/config.json
 *.env
@@ -9,16 +7,11 @@ oracle.env
 .env.*
 service_account*.json
 *credentials*.json
-
-# --- Databricks -------------------------------------------------------------
-# Asset Bundle build state and the bundled provider binaries (100+ MB).
 .databricks/
 *.tfstate
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
-
-# --- Python -----------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -26,14 +19,11 @@ __pycache__/
 .venv/
 venv/
 env/
-
-# --- Node (Apps Script / clasp) ---------------------------------------------
 node_modules/
 .clasp.json
-
-# --- OS / editor ------------------------------------------------------------
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 *.swp
+.claude/

@@ -19,7 +19,8 @@ work-prod-projects/
 │   │   ├── realtime-data-stream/      
 │   │   ├── receive-booking-monthly-backup/  
 │   │   ├── receive-uph-kpis/            
-│   │   └── shift-report-daily-update/   
+│   │   ├── shift-report-daily-update/   
+│   │   └── outet-booking/             
 │   ├── inventory-reconciliation-sql/    
 │   └── looker-reporting-etl/            
 └── internal-team-projects/             
@@ -36,6 +37,7 @@ work-prod-projects/
 | [receive-booking-monthly-backup](prod-projects/databricks-pipelines/receive-booking-monthly-backup) | Python, Pandas, Databricks | Month-end snapshot of B-Beauty and ZFS overstock bookings with EAN→brand enrichment. |
 | [receive-uph-kpis](prod-projects/databricks-pipelines/receive-uph-kpis) | Python, SQLAlchemy, Databricks | Nightly units-per-hour KPIs with Berlin→UTC windowing and idempotent Sheet refresh. |
 | [shift-report-daily-update](prod-projects/databricks-pipelines/shift-report-daily-update) | Python, SQLAlchemy, Databricks | Nightly shift report; supports a date widget for backfills. |
+| [outet-booking](prod-projects/databricks-pipelines/outet-booking) | Python, SQLAlchemy, Databricks | Nightly aggregation of outlet booking data from Oracle to Google Sheets, grouped by shift, HU, category, sort, and quality. |
 | [inventory-reconciliation-sql](prod-projects/inventory-reconciliation-sql/inbound-booking-report) | Oracle SQL | Reconstructs item lifecycle from book-out/book-in pairs and de-duplicates manual-sorting scans. |
 | [dg-compliance-pipeline](prod-projects/looker-reporting-etl/dg-compliance-pipeline) | Databricks, Oracle, Looker Studio | Dangerous-goods volume dashboard with a "days to threshold" forecast. |
 | [qa-intelligence-engine](prod-projects/looker-reporting-etl/qa-intelligence-engine) | ETL, scoring logic | Consolidates quality audits into one weighted score for steering meetings. |

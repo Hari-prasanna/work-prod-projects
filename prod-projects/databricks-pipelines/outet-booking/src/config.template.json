@@ -1,0 +1,19 @@
+{
+    "google_sheet": {
+        "sheet_id": "<TARGET_GOOGLE_SHEET_ID>",
+        "upload_tab": "booking_auto"
+    },
+    "shift_settings": {
+        "timezone": "Europe/Berlin",
+        "shifts": [
+            { "shift_number": 1, "start_time": "05:50:00", "end_time": "14:44:59" },
+            { "shift_number": 2, "start_time": "14:45:00", "end_time": "23:59:00" }
+        ]
+    },
+    "file_paths": {
+        "sql_query": "outlet_booking.sql"
+    },
+    "run_settings": {
+        "days_back": 0
+    }
+}
