@@ -22,6 +22,7 @@ work-prod-projects/
 │   │   ├── shift-report-daily-update/   
 │   │   └── outet-booking/             
 │   ├── inventory-reconciliation-sql/    
+│   ├── sql-kitchen/                     
 │   └── looker-reporting-etl/            
 └── internal-team-projects/             
     ├── kaizando-automation-appscript/   
@@ -39,6 +40,7 @@ work-prod-projects/
 | [shift-report-daily-update](prod-projects/databricks-pipelines/shift-report-daily-update) | Python, SQLAlchemy, Databricks | Nightly shift report; supports a date widget for backfills. |
 | [outet-booking](prod-projects/databricks-pipelines/outet-booking) | Python, SQLAlchemy, Databricks | Nightly aggregation of outlet booking data from Oracle to Google Sheets, grouped by shift, HU, category, sort, and quality. |
 | [inventory-reconciliation-sql](prod-projects/inventory-reconciliation-sql/inbound-booking-report) | Oracle SQL | Reconstructs item lifecycle from book-out/book-in pairs and de-duplicates manual-sorting scans. |
+| [sql-kitchen](prod-projects/sql-kitchen) | Oracle SQL | Reference library of standalone warehouse queries — booking variants, KPI pivots, and TGW infosystem queries. |
 | [dg-compliance-pipeline](prod-projects/looker-reporting-etl/dg-compliance-pipeline) | Databricks, Oracle, Looker Studio | Dangerous-goods volume dashboard with a "days to threshold" forecast. |
 | [qa-intelligence-engine](prod-projects/looker-reporting-etl/qa-intelligence-engine) | ETL, scoring logic | Consolidates quality audits into one weighted score for steering meetings. |
 | [kaizando-automation-appscript](internal-team-projects/kaizando-automation-appscript) | Google Apps Script | Auto-translates Kaizen ideas, posts Chat cards, sends monthly reward emails. |
